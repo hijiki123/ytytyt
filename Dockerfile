@@ -1,4 +1,4 @@
-FROM ghcr.io/iv-org/invidious:latest
+FROM docker.io/invidiousproject/invidious:latest
 
 EXPOSE 3000
 
