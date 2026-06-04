@@ -9,7 +9,7 @@ app = Flask(__name__)
 
 PORT = int(os.environ.get("SERVER_PORT", 10225))
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-UPSTREAM = os.environ.get("UPSTREAM_BASE", "https://exam-summaries-asus-asset.trycloudflare.com/").rstrip("/")
+UPSTREAM = os.environ.get("UPSTREAM_BASE", "http://11.jpn.gg:10225").rstrip("/")
 
 
 def add_cors(response):
