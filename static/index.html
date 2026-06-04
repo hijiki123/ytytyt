@@ -1,67 +1,5 @@
+<!-- index.html -->
 <!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>StartUp Search</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230057ff'/><text x='16' y='22' text-anchor='middle' font-size='18' font-family='sans-serif' font-weight='bold' fill='white'>S</text></svg>">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --bg:        #f5f4f0;
-  --surface:   #ffffff;
-  --border:    #e2e0da;
-  --text:      #18181b;
-  --sub:       #71717a;
-  --accent:    #0057ff;
-  --accent-h:  #0040cc;
-  --radius:    12px;
-  --radius-lg: 20px;
-}
-html { scroll-behavior: smooth; }
-body { background: var(--bg); color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif; min-height: 100vh; }
-
-/* ══ LOADING OVERLAY ══ */
-#loading-overlay {
-  position: fixed; inset: 0; background: var(--bg);
-  z-index: 9999; display: none; align-items: center; justify-content: center;
-  flex-direction: column; gap: 16px;
-}
-#loading-overlay.visible { display: flex; }
-.lo-spinner {
-  width: 40px; height: 40px; border: 3px solid var(--border);
-  border-top-color: var(--accent); border-radius: 50%;
-  animation: spin .65s linear infinite;
-}
-.lo-text { font-size: 0.88rem; color: var(--sub); }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* ══ STARTUP OVERLAY ══ */
-#startup-overlay {
-  position: fixed; inset: 0; background: var(--bg);
-  z-index: 9998; display: flex; flex-direction: column; overflow-y: auto;
-}
-#startup-overlay.hidden { display: none; }
-
-.su-nav {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 18px 28px; border-bottom: 1px solid var(--border);
-  background: var(--surface); flex-shrink: 0;
-}
-.su-logo {
-  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem;
-  letter-spacing: -0.5px; color: var(--text);
-  display: flex; align-items: center; gap: 8px;
-}
-.su-logo-icon {
-  width: 28px; height: 28px; background: var(--accent); border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  color: #fff; font-size: 0.75rem; font-weight: 800;
-  font-family: 'Syne', sans-serif; flex-shrink: 0;
-}<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -290,8 +228,6 @@ body { background: var(--bg); color: var(--text); font-family: 'Plus Jakarta San
 </div>
 
 <script>
-const API_BASE = 'http://11.jpn.gg:10225';
-
 const $ = id => document.getElementById(id);
 
 const ENGINES = {
@@ -300,6 +236,7 @@ const ENGINES = {
   duckduckgo: { name: 'DuckDuckGo',   url: q => 'https://duckduckgo.com/?q=' + encodeURIComponent(q) },
   yahoo:      { name: 'Yahoo! Japan', url: q => 'https://search.yahoo.co.jp/search?p=' + encodeURIComponent(q) },
 };
+
 let currentEngine = 'google';
 const engineKeys = Object.keys(ENGINES);
 
@@ -329,16 +266,17 @@ async function handleSuSearch() {
   $('loading-overlay').classList.add('visible');
 
   try {
-    const res = await fetch(API_BASE + '/api/auth', {
+    const res = await fetch('/api/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: val }),
     });
 
     if (res.ok) {
-      const appRes = await fetch(API_BASE + '/api/app', {
+      const appRes = await fetch('/api/app', {
         headers: { 'X-StreamBox-Auth': val },
       });
+
       if (appRes.ok) {
         const html = await appRes.text();
         document.open();
@@ -353,32 +291,6 @@ async function handleSuSearch() {
     }
   } catch (e) {
     $('loading-overlay').classList.remove('visible');
-    const box = $('su-search-box');
-    box.classList.add('error');
-    setTimeout(() => {
-      box.classList.remove('error');
-      window.location.href = ENGINES[currentEngine].url(val);
-    }, 400);
-  }
-}
-
-document.addEventListener('keydown', e => {
-  const tag = document.activeElement.tagName;
-  if ((e.key === 'k' || e.key === 'K') && tag !== 'INPUT' && tag !== 'TEXTAREA') {
-    window.location.href = 'https://www.google.com';
-  }
-});
-</script>
-</body>
-</html>
-    } else {
-      // 認証NG → 通常の検索エンジンへ飛ばす
-      $('loading-overlay').classList.remove('visible');
-      window.location.href = ENGINES[currentEngine].url(val);
-    }
-  } catch (e) {
-    $('loading-overlay').classList.remove('visible');
-    // エラー時は検索フォームをシェイクして通常検索へ
     const box = $('su-search-box');
     box.classList.add('error');
     setTimeout(() => {
