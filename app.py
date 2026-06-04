@@ -2,7 +2,6 @@
 StreamBox - Render版
 フロントエンド配信 + Agamesへのリバースプロキシ
 """
-
 import os
 import requests
 from flask import Flask, request, Response, send_from_directory
@@ -11,23 +10,15 @@ from flask_cors import CORS
 app = Flask(__name__, static_folder="static")
 CORS(app)
 
-# AgamesサーバーのURL（環境変数で設定）
 AGAMES_URL = os.environ.get("AGAMES_URL", "http://11.jpn.gg:10225")
+PROXY_TIMEOUT = 60
 
-PROXY_TIMEOUT = 60  # 動画ストリームは長めに
 
-
-# ──────────────────────────────────────────────
-# フロントエンド配信
-# ──────────────────────────────────────────────
 @app.route("/")
 def index():
     return send_from_directory("static", "index.html")
 
 
-# ──────────────────────────────────────────────
-# APIプロキシ: 検索・情報取得（軽量リクエスト）
-# ──────────────────────────────────────────────
 @app.route("/api/search")
 @app.route("/api/info")
 def api_proxy_light():
@@ -50,9 +41,6 @@ def api_proxy_light():
         return {"error": "Agamesサーバーに接続できません"}, 502
 
 
-# ──────────────────────────────────────────────
-# APIプロキシ: 動画ストリーム（ストリーミング転送）
-# ──────────────────────────────────────────────
 @app.route("/api/stream")
 def api_proxy_stream():
     video_id = request.args.get("v", "")
@@ -75,7 +63,7 @@ def api_proxy_stream():
         return {"error": "Agamesサーバーに接続できません"}, 502
 
     def generate():
-        for chunk in upstream.iter_content(chunk_size=32 * 1024):  # 32KB
+        for chunk in upstream.iter_content(chunk_size=32 * 1024):
             if chunk:
                 yield chunk
 
@@ -96,9 +84,6 @@ def api_proxy_stream():
     )
 
 
-# ──────────────────────────────────────────────
-# ヘルスチェック
-# ──────────────────────────────────────────────
 @app.route("/health")
 def health():
     return {"status": "ok"}, 200
