@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>StartUp</title>
+<link rel="icon" type="image/png" href="https://i.ibb.co/nNSm3mKT/b93c6e19-2551-4ea1-a057-a8473a1dee24.png">
+<link rel="apple-touch-icon" href="https://i.ibb.co/nNSm3mKT/b93c6e19-2551-4ea1-a057-a8473a1dee24.png">
+<meta name="theme-color" content="#f5f4f0">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f5f4f0;
+  --surface: rgba(255,255,255,.86);
+  --surface-solid: #ffffff;
+  --border: rgba(226,224,218,.95);
+  --text: #18181b;
+  --sub: #71717a;
+  --accent: #0057ff;
+  --accent-h: #0040cc;
+  --accent-soft: rgba(0,87,255,.10);
+  --danger: #ff3355;
+  --shadow: 0 16px 40px rgba(24,24,27,.08);
+  --shadow-strong: 0 24px 60px rgba(24,24,27,.12);
+  --radius: 18px;
+  --radius-lg: 24px;
+}
+html { scroll-behavior: smooth; }
+body {
+  background:
+    radial-gradient(900px 500px at 50% -80px, rgba(0,87,255,.08), transparent 60%),
+    radial-gradient(600px 320px at 20% 20%, rgba(123,92,240,.08), transparent 55%),
+    var(--bg);
+  color: var(--text);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#loading-overlay {
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(600px 300px at 50% 35%, rgba(255,255,255,.55), transparent 70%),
+    rgba(245,244,240,.92);
+  backdrop-filter: blur(18px);
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+}
+#loading-overlay.visible { display: flex; }
+.lo-brand {
+  display: flex; align-items: center; gap: 12px;
+  transform: translateY(-10px);
+  animation: pop-in .55s cubic-bezier(.2,.9,.2,1) both;
+}
+.lo-brand img {
+  width: 44px; height: 44px; border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0,87,255,.18);
+}
+.lo-spinner {
+  width: 44px; height: 44px;
+  border: 3px solid rgba(226,224,218,.9);
+  border-top-color: var(--accent);
+  border-right-color: rgba(123,92,240,.7);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+  box-shadow: 0 0 0 6px rgba(0,87,255,.04);
+}
+.lo-text {
+  font-size: 0.88rem;
+  color: var(--sub);
+  letter-spacing: .02em;
+  animation: fade-up .55s .05s both;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(.92) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+#startup-overlay {
+  position: fixed; inset: 0;
+  background: transparent;
+  z-index: 9998;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+#startup-overlay.hidden { display: none; }
+
+.su-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 28px;
+  border-bottom: 1px solid rgba(226,224,218,.8);
+  background: rgba(255,255,255,.72);
+  backdrop-filter: blur(16px);
+  flex-shrink: 0;
+}
+.su-logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.3rem;
+  letter-spacing: -0.5px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.su-logo img {
+  width: 34px; height: 34px;
+  border-radius: 11px;
+  object-fit: cover;
+  box-shadow: 0 10px 30px rgba(0,87,255,.14);
+}
+.su-nav-links { display: flex; gap: 8px; align-items: center; }
+.su-nav-link {
+  font-size: 0.8rem;
+  color: var(--sub);
+  text-decoration: none;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  transition: transform .18s ease, background .18s ease, color .18s ease, border-color .18s ease;
+  cursor: pointer;
+  background: none;
+  font-family: inherit;
+}
+.su-nav-link:hover {
+  background: rgba(255,255,255,.85);
+  color: var(--text);
+  border-color: var(--border);
+  transform: translateY(-1px);
+}
+
+.su-hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 56px 24px 40px;
+  text-align: center;
+}
+.su-hero-inner {
+  width: 100%;
+  max-width: 720px;
+  animation: hero-enter .7s cubic-bezier(.2,.9,.2,1) both;
+}
+@keyframes hero-enter {
+  from { opacity: 0; transform: translateY(18px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.su-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(232,240,255,.92);
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 7px 13px;
+  border-radius: 999px;
+  margin-bottom: 22px;
+  border: 1px solid rgba(0,87,255,.08);
+  box-shadow: 0 8px 28px rgba(0,87,255,.05);
+}
+.su-hero-badge span {
+  width: 7px; height: 7px;
+  background: var(--accent);
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 0 5px rgba(0,87,255,.08);
+}
+.su-hero h1 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(2.1rem, 6vw, 4rem);
+  line-height: 1.06;
+  letter-spacing: -1.8px;
+  color: var(--text);
+  margin-bottom: 14px;
+}
+.su-hero h1 em {
+  font-style: normal;
+  color: var(--accent);
+  text-shadow: 0 8px 28px rgba(0,87,255,.12);
+}
+.su-hero p {
+  font-size: 0.96rem;
+  color: var(--sub);
+  line-height: 1.8;
+  max-width: 520px;
+  margin: 0 auto 34px;
+}
+
+.su-search-wrap {
+  width: 100%;
+  max-width: 620px;
+  position: relative;
+  margin: 0 auto 14px;
+}
+.su-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 10px 12px 10px 10px;
+  min-height: 70px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+.su-search-box:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-strong);
+}
+.su-search-box:focus-within {
+  border-color: rgba(0,87,255,.42);
+  box-shadow: 0 0 0 5px rgba(0,87,255,.10), var(--shadow-strong);
+}
+.su-search-box.error {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 5px rgba(255,51,85,.12), var(--shadow-strong);
+  animation: shake .34s ease both;
+}
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  18% { transform: translateX(-6px); }
+  36% { transform: translateX(6px); }
+  54% { transform: translateX(-4px); }
+  72% { transform: translateX(4px); }
+}
+
+.su-engine-picker {
+  position: relative;
+  flex-shrink: 0;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+}
+.su-engine-toggle {
+  height: 48px;
+  min-width: 132px;
+  padding: 0 14px 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(247,247,248,.86));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+  font: inherit;
+  color: var(--text);
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease, background .18s ease;
+  box-shadow: 0 6px 18px rgba(24,24,27,.04);
+}
+.su-engine-toggle:hover {
+  transform: translateY(-1px);
+  border-color: rgba(0,87,255,.25);
+  box-shadow: 0 10px 24px rgba(0,87,255,.06);
+}
+.su-engine-toggle:active { transform: translateY(0); }
+.su-engine-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.su-engine-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 5px rgba(0,0,0,.03);
+}
+.su-engine-name {
+  font-size: 0.86rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.su-chevron {
+  width: 16px; height: 16px;
+  color: var(--sub);
+  transition: transform .22s cubic-bezier(.2,.8,.2,1);
+}
+.su-engine-picker.open .su-chevron {
+  transform: rotate(180deg);
+}
+.su-engine-menu {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 10px);
+  width: 240px;
+  padding: 8px;
+  border: 1px solid rgba(226,224,218,.92);
+  border-radius: 18px;
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 22px 60px rgba(24,24,27,.12);
+  opacity: 0;
+  transform: translateY(-8px) scale(.98);
+  pointer-events: none;
+  transform-origin: top left;
+  transition: opacity .18s ease, transform .22s cubic-bezier(.2,.9,.2,1);
+  z-index: 30;
+}
+.su-engine-picker.open .su-engine-menu {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+.su-engine-menu::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: 22px;
+  width: 12px;
+  height: 12px;
+  background: rgba(255,255,255,.96);
+  border-left: 1px solid rgba(226,224,218,.92);
+  border-top: 1px solid rgba(226,224,218,.92);
+  transform: rotate(45deg);
+}
+.su-engine-option {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  border-radius: 13px;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  transition: background .16s ease, transform .16s ease, box-shadow .16s ease;
+}
+.su-engine-option:hover {
+  background: rgba(0,87,255,.06);
+  transform: translateX(2px);
+}
+.su-engine-option.active {
+  background: rgba(0,87,255,.10);
+  box-shadow: inset 0 0 0 1px rgba(0,87,255,.10);
+}
+.su-engine-option .opt-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+.su-engine-option .opt-sub {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--sub);
+  margin-top: 1px;
+  font-family: 'Space Mono', monospace;
+}
+
+.su-input-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 10px;
+}
+.su-search-icon {
+  color: var(--sub);
+  flex-shrink: 0;
+  margin-left: 4px;
+  display: flex;
+  align-items: center;
+}
+.su-search-box input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  color: var(--text);
+  background: transparent;
+  font-family: inherit;
+}
+.su-search-box input::placeholder { color: rgba(113,113,122,.85); }
+.su-search-go {
+  background:
+    linear-gradient(180deg, rgba(0,87,255,1), rgba(0,64,204,1));
+  border: none;
+  border-radius: 14px;
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #fff;
+  flex-shrink: 0;
+  margin-right: 2px;
+  transition: transform .16s ease, filter .16s ease, box-shadow .16s ease;
+  box-shadow: 0 12px 22px rgba(0,87,255,.18);
+}
+.su-search-go:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+  box-shadow: 0 16px 30px rgba(0,87,255,.22);
+}
+.su-search-go:active { transform: translateY(0) scale(.96); }
+
+.su-active-label {
+  font-size: 0.78rem;
+  color: var(--sub);
+  margin-top: 10px;
+}
+.su-active-label strong { color: var(--text); }
+
+.su-hint {
+  margin-top: 32px;
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.su-hint-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  color: var(--sub);
+}
+.su-hint-key {
+  background: rgba(255,255,255,.85);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 2px 8px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--text);
+  box-shadow: 0 6px 18px rgba(24,24,27,.04);
+}
+
+.su-footer {
+  padding: 20px 28px;
+  border-top: 1px solid rgba(226,224,218,.8);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  flex-shrink: 0;
+  background: rgba(255,255,255,.58);
+  backdrop-filter: blur(10px);
+}
+.su-footer-links { display: flex; gap: 16px; flex-wrap: wrap; }
+.su-footer a {
+  font-size: 0.78rem;
+  color: var(--sub);
+  text-decoration: none;
+  transition: color .16s ease;
+}
+.su-footer a:hover { color: var(--text); }
+.su-footer-copy {
+  font-size: 0.76rem;
+  color: var(--sub);
+  font-family: 'Space Mono', monospace;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+}
+
+@media (max-width: 720px) {
+  .su-nav { padding: 14px 16px; }
+  .su-hero { padding: 42px 16px 28px; }
+  .su-search-box {
+    flex-wrap: wrap;
+    padding: 10px;
+    gap: 10px;
+  }
+  .su-engine-picker { width: 100%; }
+  .su-engine-toggle {
+    width: 100%;
+    min-width: 0;
+    justify-content: space-between;
+  }
+  .su-engine-menu {
+    width: 100%;
+  }
+  .su-input-wrap { width: 100%; }
+  .su-search-go {
+    width: 44px;
+    height: 44px;
+  }
+  .su-footer { padding: 18px 16px; }
+  .su-footer-copy {
+    align-items: flex-start;
+  }
+}
+</style>
+</head>
+<body>
+
+<div id="loading-overlay" aria-hidden="true">
+  <div class="lo-brand">
+    <img src="https://i.ibb.co/nNSm3mKT/b93c6e19-2551-4ea1-a057-a8473a1dee24.png" alt="">
+    <div class="lo-spinner"></div>
+  </div>
+  <div class="lo-text">読み込み中…</div>
+</div>
+
+<div id="startup-overlay">
+  <nav class="su-nav">
+    <div class="su-logo">
+      <img src="https://i.ibb.co/nNSm3mKT/b93c6e19-2551-4ea1-a057-a8473a1dee24.png" alt="StartUp">
+      <span>StartUp</span>
+    </div>
+    <div class="su-nav-links">
+      <a class="su-nav-link" href="#">About</a>
+      <a class="su-nav-link" href="#">Privacy</a>
+    </div>
+  </nav>
+
+  <div class="su-hero">
+    <div class="su-hero-inner">
+      <div class="su-hero-badge"><span></span>マルチエンジン検索</div>
+      <h1>探すなら、<em>StartUp</em> で。</h1>
+      <p>Google、Bing、DuckDuckGo、Yahoo…お好みの検索エンジンを、検索ボックスの中から切り替え。ひとつの入力で、すべてにアクセス。</p>
+
+      <div class="su-search-wrap">
+        <div class="su-search-box" id="su-search-box">
+          <div class="su-engine-picker" id="engine-picker">
+            <button class="su-engine-toggle" id="engine-toggle" type="button" aria-haspopup="true" aria-expanded="false">
+              <span class="su-engine-pill">
+                <span class="su-engine-dot" id="current-dot" style="background:#4285f4"></span>
+                <span class="su-engine-name" id="current-engine-name">Google</span>
+              </span>
+              <svg class="su-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M6 9l6 6 6-6"></path>
+              </svg>
+            </button>
+
+            <div class="su-engine-menu" id="engine-menu" role="menu" aria-label="検索エンジン">
+              <button class="su-engine-option active" data-engine="google" type="button">
+                <span class="su-engine-dot" style="background:#4285f4"></span>
+                <span>
+                  <span class="opt-name">Google</span>
+                  <span class="opt-sub">google.com</span>
+                </span>
+              </button>
+              <button class="su-engine-option" data-engine="bing" type="button">
+                <span class="su-engine-dot" style="background:#00809d"></span>
+                <span>
+                  <span class="opt-name">Bing</span>
+                  <span class="opt-sub">bing.com</span>
+                </span>
+              </button>
+              <button class="su-engine-option" data-engine="duckduckgo" type="button">
+                <span class="su-engine-dot" style="background:#de5833"></span>
+                <span>
+                  <span class="opt-name">DuckDuckGo</span>
+                  <span class="opt-sub">duckduckgo.com</span>
+                </span>
+              </button>
+              <button class="su-engine-option" data-engine="yahoo" type="button">
+                <span class="su-engine-dot" style="background:#6001d2"></span>
+                <span>
+                  <span class="opt-name">Yahoo! Japan</span>
+                  <span class="opt-sub">search.yahoo.co.jp</span>
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <div class="su-input-wrap">
+            <span class="su-search-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </span>
+            <input id="su-input" type="text" placeholder="何でも検索…"
+                   autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+          </div>
+
+          <button class="su-search-go" onclick="handleSuSearch()" aria-label="検索">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="su-active-label" id="su-active-label"><strong>Google</strong> で検索します</div>
+
+      <div class="su-hint">
+        <div class="su-hint-item"><span class="su-hint-key">Enter</span> で検索</div>
+        <div class="su-hint-item"><span class="su-hint-key">Tab</span> でボックス移動</div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="su-footer">
+    <div class="su-footer-links">
+      <a href="#">利用規約</a>
+      <a href="#">プライバシーポリシー</a>
+      <a href="mailto:hiziki.tools@proton.me">お問い合わせ</a>
+    </div>
+    <div class="su-footer-copy">
+      <div>お問い合わせ: hiziki.tools@proton.me</div>
+      <div>© 2026 StartUp</div>
+    </div>
+  </footer>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const ENGINES = {
+  google:     { name: 'Google',       url: q => 'https://www.google.com/search?q=' + encodeURIComponent(q), dot: '#4285f4', sub: 'google.com' },
+  bing:       { name: 'Bing',         url: q => 'https://www.bing.com/search?q=' + encodeURIComponent(q), dot: '#00809d', sub: 'bing.com' },
+  duckduckgo: { name: 'DuckDuckGo',   url: q => 'https://duckduckgo.com/?q=' + encodeURIComponent(q), dot: '#de5833', sub: 'duckduckgo.com' },
+  yahoo:      { name: 'Yahoo! Japan', url: q => 'https://search.yahoo.co.jp/search?p=' + encodeURIComponent(q), dot: '#6001d2', sub: 'search.yahoo.co.jp' },
+};
+
+let currentEngine = 'google';
+let menuOpen = false;
+
+function openMenu() {
+  $('engine-picker').classList.add('open');
+  $('engine-toggle').setAttribute('aria-expanded', 'true');
+  menuOpen = true;
+}
+function closeMenu() {
+  $('engine-picker').classList.remove('open');
+  $('engine-toggle').setAttribute('aria-expanded', 'false');
+  menuOpen = false;
+}
+function toggleMenu() {
+  menuOpen ? closeMenu() : openMenu();
+}
+
+function setEngine(engineKey) {
+  currentEngine = engineKey;
+
+  const engine = ENGINES[engineKey];
+  $('current-engine-name').textContent = engine.name;
+  $('current-dot').style.background = engine.dot;
+  $('su-active-label').innerHTML = '<strong>' + engine.name + '</strong> で検索します';
+
+  document.querySelectorAll('.su-engine-option').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.engine === engineKey);
+  });
+}
+
+$('engine-toggle').addEventListener('click', (e) => {
+  e.stopPropagation();
+  toggleMenu();
+});
+
+document.querySelectorAll('.su-engine-option').forEach(btn => {
+  btn.addEventListener('click', () => {
+    setEngine(btn.dataset.engine);
+    closeMenu();
+  });
+});
+
+document.addEventListener('click', (e) => {
+  if (!$('engine-picker').contains(e.target)) closeMenu();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeMenu();
+});
+
+setTimeout(() => $('su-input').focus(), 120);
+
+$('su-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    handleSuSearch();
+  }
+});
+
+async function handleSuSearch() {
+  const val = $('su-input').value.trim();
+  if (!val) return;
+
+  closeMenu();
+  $('loading-overlay').classList.add('visible');
+
+  try {
+    const res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: val }),
+    });
+
+    if (res.ok) {
+      const appRes = await fetch('/api/app', {
+        headers: { 'X-StreamBox-Auth': val },
+      });
+
+      if (appRes.ok) {
+        const html = await appRes.text();
+        document.open();
+        document.write(html);
+        document.close();
+      } else {
+        $('su-search-box').classList.add('error');
+        setTimeout(() => $('su-search-box').classList.remove('error'), 350);
+        setTimeout(() => {
+          window.location.href = ENGINES[currentEngine].url(val);
+        }, 380);
+      }
+    } else {
+      $('su-search-box').classList.add('error');
+      setTimeout(() => $('su-search-box').classList.remove('error'), 350);
+      setTimeout(() => {
+        window.location.href = ENGINES[currentEngine].url(val);
+      }, 380);
+    }
+  } catch (e) {
+    $('su-search-box').classList.add('error');
+    setTimeout(() => $('su-search-box').classList.remove('error'), 350);
+    setTimeout(() => {
+      window.location.href = ENGINES[currentEngine].url(val);
+    }, 380);
+  }
+}
+</script>
+</body>
+</html>
