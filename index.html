@@ -473,7 +473,15 @@ body {
   transition: color .16s ease;
 }
 .su-footer a:hover { color: var(--text); }
-.su-footer-copy { font-size: 0.76rem; color: var(--sub); font-family: 'Space Mono', monospace; }
+.su-footer-copy {
+  font-size: 0.76rem;
+  color: var(--sub);
+  font-family: 'Space Mono', monospace;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+}
 
 @media (max-width: 720px) {
   .su-nav { padding: 14px 16px; }
@@ -498,6 +506,9 @@ body {
     height: 44px;
   }
   .su-footer { padding: 18px 16px; }
+  .su-footer-copy {
+    align-items: flex-start;
+  }
 }
 </style>
 </head>
@@ -605,9 +616,12 @@ body {
     <div class="su-footer-links">
       <a href="#">利用規約</a>
       <a href="#">プライバシーポリシー</a>
-      <a href="#">お問い合わせ</a>
+      <a href="mailto:hiziki.tools@proton.me">お問い合わせ</a>
     </div>
-    <div class="su-footer-copy">© 2025 StartUp</div>
+    <div class="su-footer-copy">
+      <div>お問い合わせ: hiziki.tools@proton.me</div>
+      <div>© 2026 StartUp</div>
+    </div>
   </footer>
 </div>
 
@@ -622,7 +636,6 @@ const ENGINES = {
 };
 
 let currentEngine = 'google';
-const engineOrder = Object.keys(ENGINES);
 let menuOpen = false;
 
 function openMenu() {
@@ -660,7 +673,7 @@ $('engine-toggle').addEventListener('click', (e) => {
 document.querySelectorAll('.su-engine-option').forEach(btn => {
   btn.addEventListener('click', () => {
     setEngine(btn.dataset.engine);
-    openMenu();
+    closeMenu();
   });
 });
 
