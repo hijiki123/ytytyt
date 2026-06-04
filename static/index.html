@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>StartUp Search</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230057ff'/><text x='16' y='22' text-anchor='middle' font-size='18' font-family='sans-serif' font-weight='bold' fill='white'>S</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #f5f4f0;
+  --surface:   #ffffff;
+  --border:    #e2e0da;
+  --text:      #18181b;
+  --sub:       #71717a;
+  --accent:    #0057ff;
+  --accent-h:  #0040cc;
+  --radius:    12px;
+  --radius-lg: 20px;
+  --sb-bg:      #0a0a0f;
+  --sb-surface: #13131a;
+  --sb-card:    #1b1b26;
+  --sb-border:  #2a2a3d;
+  --sb-accent:  #0057ff;
+  --sb-accent2: #7b5cf0;
+  --sb-text:    #e8e8f0;
+  --sb-muted:   #6b6b88;
+}
+
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif; min-height: 100vh; }
+
+/* ══ STARTUP OVERLAY ══ */
+#startup-overlay {
+  position: fixed; inset: 0; background: var(--bg);
+  z-index: 9999; display: flex; flex-direction: column; overflow-y: auto;
+}
+#startup-overlay.hidden { display: none; }
+
+.su-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 28px; border-bottom: 1px solid var(--border);
+  background: var(--surface); flex-shrink: 0;
+}
+.su-logo {
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem;
+  letter-spacing: -0.5px; color: var(--text);
+  display: flex; align-items: center; gap: 8px;
+}
+.su-logo-icon {
+  width: 28px; height: 28px; background: var(--accent); border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 0.75rem; font-weight: 800;
+  font-family: 'Syne', sans-serif; flex-shrink: 0;
+}
+.su-nav-links { display: flex; gap: 6px; align-items: center; }
+.su-nav-link {
+  font-size: 0.8rem; color: var(--sub); text-decoration: none;
+  padding: 6px 12px; border-radius: 99px; border: 1px solid transparent;
+  transition: all .15s; cursor: pointer; background: none; font-family: inherit;
+}
+.su-nav-link:hover { background: var(--border); color: var(--text); }
+
+.su-hero {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 60px 24px 40px; text-align: center;
+}
+
+.su-hero-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #e8f0ff; color: var(--accent);
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; padding: 5px 12px;
+  border-radius: 99px; margin-bottom: 20px;
+}
+.su-hero-badge span { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; display: inline-block; }
+
+.su-hero h1 {
+  font-family: 'Syne', sans-serif; font-weight: 800;
+  font-size: clamp(2rem, 6vw, 3.6rem); line-height: 1.1;
+  letter-spacing: -1.5px; color: var(--text); margin-bottom: 14px;
+}
+.su-hero h1 em { font-style: normal; color: var(--accent); }
+.su-hero p { font-size: 0.95rem; color: var(--sub); line-height: 1.7; max-width: 440px; margin-bottom: 36px; }
+
+.su-engine-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
+.su-engine-btn {
+  display: flex; align-items: center; gap: 7px;
+  padding: 8px 16px; border: 1.5px solid var(--border);
+  border-radius: 99px; background: var(--surface);
+  cursor: pointer; font-family: inherit; font-size: 0.82rem; font-weight: 600;
+  color: var(--sub); transition: all .15s; -webkit-tap-highlight-color: transparent;
+}
+.su-engine-btn:hover { border-color: var(--accent); color: var(--accent); background: #e8f0ff; }
+.su-engine-btn.active { border-color: var(--accent); background: var(--accent); color: #fff; }
+.su-engine-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+.su-search-wrap { width: 100%; max-width: 580px; position: relative; margin-bottom: 12px; }
+.su-search-box {
+  display: flex; align-items: center;
+  background: var(--surface); border: 2px solid var(--border);
+  border-radius: var(--radius-lg); padding: 0 18px; height: 58px;
+  transition: border-color .15s, box-shadow .15s;
+}
+.su-search-box:focus-within { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(0,87,255,.1); }
+.su-search-icon { color: var(--sub); flex-shrink: 0; margin-right: 12px; display: flex; align-items: center; }
+.su-search-box input {
+  flex: 1; border: none; outline: none; font-size: 1rem;
+  color: var(--text); background: transparent; font-family: inherit; min-width: 0;
+}
+.su-search-box input::placeholder { color: var(--sub); }
+.su-search-go {
+  background: var(--accent); border: none; border-radius: 10px;
+  width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: #fff; flex-shrink: 0; margin-left: 8px;
+  transition: background .15s, transform .1s;
+}
+.su-search-go:hover { background: var(--accent-h); }
+.su-search-go:active { transform: scale(.94); }
+
+.su-active-label { font-size: 0.78rem; color: var(--sub); }
+.su-active-label strong { color: var(--text); }
+
+.su-hint { margin-top: 32px; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+.su-hint-item { display: flex; align-items: center; gap: 6px; font-size: 0.76rem; color: var(--sub); }
+.su-hint-key {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 5px; padding: 2px 7px;
+  font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--text);
+}
+
+.su-footer {
+  padding: 20px 28px; border-top: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 12px; flex-shrink: 0;
+}
+.su-footer-links { display: flex; gap: 16px; flex-wrap: wrap; }
+.su-footer a { font-size: 0.78rem; color: var(--sub); text-decoration: none; }
+.su-footer a:hover { color: var(--text); }
+.su-footer-copy { font-size: 0.76rem; color: var(--sub); font-family: 'Space Mono', monospace; }
+
+/* ══ VOLUME MODAL ══ */
+#vol-modal {
+  position: fixed; inset: 0; background: rgba(0,0,0,.65);
+  z-index: 8000; display: none; align-items: center;
+  justify-content: center; padding: 24px; backdrop-filter: blur(6px);
+}
+#vol-modal.visible { display: flex; }
+.vol-box {
+  background: var(--sb-surface); border: 1px solid var(--sb-border);
+  border-radius: 20px; padding: 36px 28px 28px;
+  max-width: 340px; width: 100%; text-align: center;
+  box-shadow: 0 32px 80px rgba(0,0,0,.7);
+  animation: modal-pop .22s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes modal-pop { from { opacity:0; transform:scale(.88) translateY(16px); } to { opacity:1; transform:none; } }
+.vol-icon { font-size: 2.8rem; margin-bottom: 14px; }
+.vol-box h3 { font-size: 1rem; font-weight: 700; margin-bottom: 10px; color: var(--sb-text); }
+.vol-box p { font-size: 0.82rem; color: var(--sb-muted); line-height: 1.65; margin-bottom: 24px; }
+.vol-box p strong { color: #ff5577; }
+.vol-btn-row { display: flex; gap: 10px; }
+.vol-btn {
+  flex: 1; padding: 12px; border-radius: 10px; border: none;
+  font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.88rem; font-weight: 700;
+  cursor: pointer; transition: opacity .15s, transform .1s;
+}
+.vol-btn:hover { opacity: .85; }
+.vol-btn:active { transform: scale(.97); }
+.vol-btn-ok { background: var(--sb-accent); color: #fff; }
+.vol-btn-cancel { background: var(--sb-card); border: 1px solid var(--sb-border); color: var(--sb-muted); }
+
+/* ══ STREAMBOX APP ══ */
+#app { display: none; background: var(--sb-bg); min-height: 100vh; }
+#app.visible { display: block; }
+
+#app header {
+  background: var(--sb-surface); border-bottom: 1px solid var(--sb-border);
+  padding: 0 16px; display: flex; align-items: center;
+  gap: 12px; height: 56px; position: sticky; top: 0; z-index: 100;
+}
+.sb-logo {
+  font-family: 'Syne', sans-serif; font-size: 1.15rem; font-weight: 800;
+  letter-spacing: -0.5px; color: var(--sb-text); white-space: nowrap;
+  flex-shrink: 0; display: flex; align-items: center; gap: 8px;
+}
+.sb-logo-icon {
+  width: 26px; height: 26px; background: var(--sb-accent); border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; font-weight: 800; color: #fff; flex-shrink: 0;
+}
+.sb-search-bar { flex: 1; display: flex; min-width: 0; }
+.sb-search-bar input {
+  flex: 1; min-width: 0; background: var(--sb-card);
+  border: 1px solid var(--sb-border); border-right: none;
+  border-radius: 8px 0 0 8px; padding: 0 12px; height: 38px;
+  color: var(--sb-text); font-family: inherit; font-size: 0.9rem;
+  outline: none; transition: border-color .2s;
+}
+.sb-search-bar input:focus { border-color: var(--sb-accent2); }
+.sb-search-bar button {
+  background: var(--sb-accent); border: none; border-radius: 0 8px 8px 0;
+  padding: 0 14px; cursor: pointer; color: #fff; font-size: 1rem;
+  flex-shrink: 0; height: 38px; display: flex; align-items: center; transition: opacity .2s;
+}
+.sb-search-bar button:hover { opacity: .85; }
+
+#player-section { display: none; background: #000; border-bottom: 1px solid var(--sb-border); }
+#player-section.visible { display: block; }
+.player-wrap { max-width: 860px; margin: 0 auto; padding: 16px; }
+video { width: 100%; max-height: min(480px, 56vw); background: #000; border-radius: 8px; display: block; }
+.video-meta { padding: 12px 0 0; }
+.video-meta h2 { font-size: 1rem; font-weight: 700; color: var(--sb-text); line-height: 1.4; margin-bottom: 4px; padding-right: 80px; }
+.video-meta .sub { font-size: 0.78rem; color: var(--sb-muted); font-family: 'Space Mono', monospace; }
+.video-meta .desc { margin-top: 10px; font-size: 0.82rem; color: var(--sb-muted); line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
+#close-player {
+  float: right; background: var(--sb-card); border: 1px solid var(--sb-border);
+  color: var(--sb-text); padding: 7px 14px; border-radius: 8px; cursor: pointer;
+  font-family: inherit; font-size: 0.8rem; margin-top: 2px;
+}
+#close-player:active { border-color: var(--sb-accent); color: var(--sb-accent); }
+
+#app main { padding: 16px; }
+#status { text-align: center; padding: 60px 0; color: var(--sb-muted); font-size: 0.88rem; display: none; }
+#status.visible { display: block; }
+.spinner {
+  width: 34px; height: 34px; border: 3px solid var(--sb-border);
+  border-top-color: var(--sb-accent); border-radius: 50%;
+  animation: spin .65s linear infinite; margin: 0 auto 14px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; }
+@media (min-width: 480px) { .grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; } }
+@media (min-width: 768px) {
+  .grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; }
+  #app main { padding: 24px; }
+  #app header { padding: 0 24px; gap: 20px; }
+}
+
+.card {
+  background: var(--sb-card); border: 1px solid var(--sb-border);
+  border-radius: 10px; overflow: hidden; cursor: pointer;
+  transition: transform .18s, border-color .18s, box-shadow .18s;
+  -webkit-tap-highlight-color: transparent;
+}
+@media (hover: hover) {
+  .card:hover { transform: translateY(-3px); border-color: var(--sb-accent2); box-shadow: 0 8px 28px rgba(123,92,240,.18); }
+  .card:hover .thumb-wrap img { transform: scale(1.05); }
+  .card:hover .play-overlay { opacity: 1; }
+}
+.card:active { opacity: .82; }
+.thumb-wrap { position: relative; aspect-ratio: 16/9; background: #111; overflow: hidden; }
+.thumb-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .3s; }
+.duration-badge {
+  position: absolute; bottom: 6px; right: 6px; background: rgba(0,0,0,.8); color: #fff;
+  font-family: 'Space Mono', monospace; font-size: 0.68rem; padding: 2px 6px; border-radius: 4px;
+}
+.play-overlay {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity .2s; background: rgba(0,87,255,.12);
+}
+.card-body { padding: 10px; }
+.card-title {
+  font-size: 0.82rem; font-weight: 600; color: var(--sb-text); line-height: 1.4;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; margin-bottom: 5px; word-break: break-word;
+}
+.card-sub { font-size: 0.7rem; color: var(--sb-muted); font-family: 'Space Mono', monospace; display: flex; justify-content: space-between; gap: 6px; }
+.card-sub span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.empty { grid-column: 1/-1; text-align: center; padding: 60px 0; color: var(--sb-muted); }
+</style>
+</head>
+<body>
+
+<!-- STARTUP OVERLAY -->
+<div id="startup-overlay">
+  <nav class="su-nav">
+    <div class="su-logo">
+      <div class="su-logo-icon">S</div>
+      StartUp
+    </div>
+    <div class="su-nav-links">
+      <a class="su-nav-link" href="#">About</a>
+      <a class="su-nav-link" href="#">Privacy</a>
+    </div>
+  </nav>
+
+  <div class="su-hero">
+    <div class="su-hero-badge"><span></span>マルチエンジン検索</div>
+    <h1>探すなら、<em>StartUp</em> で。</h1>
+    <p>Google、Bing、DuckDuckGo、Yahoo…お好みの検索エンジンをワンタップで切り替え。ひとつの検索窓で、すべてにアクセス。</p>
+
+    <div class="su-engine-row" id="engine-row">
+      <button class="su-engine-btn active" data-engine="google" onclick="selectEngine(this)">
+        <span class="su-engine-dot" style="background:#4285f4"></span> Google
+      </button>
+      <button class="su-engine-btn" data-engine="bing" onclick="selectEngine(this)">
+        <span class="su-engine-dot" style="background:#00809d"></span> Bing
+      </button>
+      <button class="su-engine-btn" data-engine="duckduckgo" onclick="selectEngine(this)">
+        <span class="su-engine-dot" style="background:#de5833"></span> DuckDuckGo
+      </button>
+      <button class="su-engine-btn" data-engine="yahoo" onclick="selectEngine(this)">
+        <span class="su-engine-dot" style="background:#6001d2"></span> Yahoo! Japan
+      </button>
+    </div>
+
+    <div class="su-search-wrap">
+      <div class="su-search-box">
+        <span class="su-search-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </span>
+        <input id="su-input" type="text" placeholder="何でも検索…"
+               autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <button class="su-search-go" onclick="handleSuSearch()" aria-label="検索">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="su-active-label" id="su-active-label"><strong>Google</strong> で検索します</div>
+
+    <div class="su-hint">
+      <div class="su-hint-item"><span class="su-hint-key">Enter</span> で検索</div>
+      <div class="su-hint-item"><span class="su-hint-key">K</span> で緊急退出</div>
+      <div class="su-hint-item"><span class="su-hint-key">Tab</span> でエンジン切替</div>
+    </div>
+  </div>
+
+  <footer class="su-footer">
+    <div class="su-footer-links">
+      <a href="#">利用規約</a>
+      <a href="#">プライバシーポリシー</a>
+      <a href="#">お問い合わせ</a>
+    </div>
+    <div class="su-footer-copy">© 2025 StartUp Search</div>
+  </footer>
+</div>
+
+<!-- VOLUME MODAL -->
+<div id="vol-modal">
+  <div class="vol-box">
+    <div class="vol-icon">🔊</div>
+    <h3>音量にご注意ください</h3>
+    <p>再生前に<strong>音量を下げる</strong>ことをおすすめします。<br>突然大きな音が出る場合があります。<br>周囲の環境に配慮してご視聴ください。</p>
+    <div class="vol-btn-row">
+      <button class="vol-btn vol-btn-cancel" onclick="cancelPlay()">キャンセル</button>
+      <button class="vol-btn vol-btn-ok" onclick="confirmPlay()">理解して再生</button>
+    </div>
+  </div>
+</div>
+
+<!-- STREAMBOX APP -->
+<div id="app">
+  <header>
+    <div class="sb-logo">
+      <div class="sb-logo-icon">S</div>
+      StreamBox
+    </div>
+    <div class="sb-search-bar">
+      <input id="q" type="search" placeholder="動画を検索..." autocomplete="off" inputmode="search">
+      <button onclick="doSearch()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <div id="player-section">
+    <div class="player-wrap">
+      <video id="vid" controls playsinline webkit-playsinline></video>
+      <div class="video-meta">
+        <button id="close-player" onclick="closePlayer()">✕ 閉じる</button>
+        <h2 id="vid-title"></h2>
+        <div class="sub" id="vid-sub"></div>
+        <div class="desc" id="vid-desc"></div>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <div id="status">
+      <div class="spinner"></div>
+      <div id="status-text">検索中…</div>
+    </div>
+    <div class="grid" id="grid"></div>
+  </main>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const CORRECT_PW = 'YouTube';
+const API_BASE = '';
+
+const ENGINES = {
+  google:     { name: 'Google',       url: q => `https://www.google.com/search?q=${encodeURIComponent(q)}` },
+  bing:       { name: 'Bing',         url: q => `https://www.bing.com/search?q=${encodeURIComponent(q)}` },
+  duckduckgo: { name: 'DuckDuckGo',   url: q => `https://duckduckgo.com/?q=${encodeURIComponent(q)}` },
+  yahoo:      { name: 'Yahoo! Japan', url: q => `https://search.yahoo.co.jp/search?p=${encodeURIComponent(q)}` },
+};
+let currentEngine = 'google';
+const engineKeys = Object.keys(ENGINES);
+
+(function() {
+  if (sessionStorage.getItem('auth') === '1') {
+    $('startup-overlay').classList.add('hidden');
+    $('app').classList.add('visible');
+  } else {
+    setTimeout(() => $('su-input').focus(), 80);
+  }
+})();
+
+function selectEngine(btn) {
+  document.querySelectorAll('.su-engine-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentEngine = btn.dataset.engine;
+  $('su-active-label').innerHTML = `<strong>${ENGINES[currentEngine].name}</strong> で検索します`;
+}
+
+$('su-input').addEventListener('keydown', e => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const idx = engineKeys.indexOf(currentEngine);
+    selectEngine(document.querySelector(`[data-engine="${engineKeys[(idx + 1) % engineKeys.length]}"]`));
+  } else if (e.key === 'Enter') {
+    handleSuSearch();
+  }
+});
+
+function handleSuSearch() {
+  const val = $('su-input').value.trim();
+  if (!val) return;
+  if (val === CORRECT_PW) {
+    sessionStorage.setItem('auth', '1');
+    $('startup-overlay').classList.add('hidden');
+    $('app').classList.add('visible');
+    setTimeout(() => $('q').focus(), 80);
+  } else {
+    window.location.href = ENGINES[currentEngine].url(val);
+  }
+}
+
+function fmtDuration(sec) {
+  if (!sec) return '';
+  const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
+  return h ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+           : `${m}:${String(s).padStart(2,'0')}`;
+}
+function fmtViews(n) {
+  if (!n) return '';
+  if (n >= 1e8) return `${(n/1e8).toFixed(1)}億回`;
+  if (n >= 1e4) return `${(n/1e4).toFixed(1)}万回`;
+  return `${n}回`;
+}
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function showStatus(msg) { $('status-text').textContent = msg; $('status').classList.add('visible'); }
+function hideStatus() { $('status').classList.remove('visible'); }
+function showError(msg) { $('grid').innerHTML = `<div class="empty">⚠ ${escHtml(msg)}</div>`; hideStatus(); }
+
+async function doSearch() {
+  const q = $('q').value.trim();
+  if (!q) return;
+  $('q').blur(); $('grid').innerHTML = '';
+  showStatus('検索中…'); closePlayer();
+  try {
+    const res = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(q)}&max=18`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    hideStatus();
+    if (data.error) { showError(data.error); return; }
+    if (!data.results?.length) { showError('結果が見つかりませんでした'); return; }
+    data.results.forEach(item => $('grid').appendChild(makeCard(item)));
+  } catch(e) { showError('ネットワークエラー: ' + e.message); }
+}
+
+function makeCard(item) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div class="thumb-wrap">
+      <img src="${escHtml(item.thumbnail)}" alt="" loading="lazy"
+           onerror="this.src='https://i.ytimg.com/vi/${escHtml(item.id)}/mqdefault.jpg'">
+      ${item.duration ? `<div class="duration-badge">${fmtDuration(item.duration)}</div>` : ''}
+      <div class="play-overlay">
+        <svg width="44" height="44" viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="24" fill="rgba(0,87,255,0.88)"/>
+          <polygon points="19,14 37,24 19,34" fill="white"/>
+        </svg>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="card-title">${escHtml(item.title)}</div>
+      <div class="card-sub">
+        <span>${escHtml(item.uploader || '')}</span>
+        <span>${fmtViews(item.view_count)}</span>
+      </div>
+    </div>`;
+  card.onclick = () => playVideo(item.id, item.title);
+  return card;
+}
+
+let _pendingId = null, _pendingTitle = null;
+
+function playVideo(id, title) {
+  _pendingId = id; _pendingTitle = title;
+  $('vol-modal').classList.add('visible');
+}
+function cancelPlay() {
+  _pendingId = null; _pendingTitle = null;
+  $('vol-modal').classList.remove('visible');
+}
+async function confirmPlay() {
+  $('vol-modal').classList.remove('visible');
+  const id = _pendingId, title = _pendingTitle;
+  _pendingId = null; _pendingTitle = null;
+  $('vid-title').textContent = '読み込み中…';
+  $('vid-sub').textContent = ''; $('vid-desc').textContent = ''; $('vid').src = '';
+  $('player-section').classList.add('visible');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  try {
+    const res = await fetch(`${API_BASE}/api/info?v=${id}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data.error) { $('vid-title').textContent = '⚠ ' + data.error; return; }
+    $('vid-title').textContent = data.title || title;
+    $('vid-sub').textContent = [data.uploader, fmtDuration(data.duration), '360p'].filter(Boolean).join(' · ');
+    $('vid-desc').textContent = data.description || '';
+    $('vid').src = `${API_BASE}/api/stream?v=${id}`;
+    $('vid').play().catch(() => {});
+  } catch(e) { $('vid-title').textContent = '⚠ エラー: ' + e.message; }
+}
+
+function closePlayer() {
+  $('vid').pause(); $('vid').src = '';
+  $('player-section').classList.remove('visible');
+}
+
+$('q').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+
+document.addEventListener('keydown', e => {
+  const tag = document.activeElement.tagName;
+  if ((e.key === 'k' || e.key === 'K') && tag !== 'INPUT' && tag !== 'TEXTAREA') {
+    window.location.href = 'https://www.google.com';
+  }
+});
+</script>
+</body>
+</html>
