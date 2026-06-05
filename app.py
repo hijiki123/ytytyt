@@ -1,3 +1,4 @@
+# app.py
 import os
 import urllib.error
 import urllib.request
@@ -14,7 +15,7 @@ UPSTREAM = os.environ.get("UPSTREAM_BASE", "http://11.jpn.gg:10225").rstrip("/")
 def add_cors(response):
     response.headers["Access-Control-Allow-Origin"] = "*"
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Range, X-StreamBox-Auth, X-StreamBox-User"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Range, X-StreamBox-Auth"
     return response
 
 
@@ -120,14 +121,8 @@ def index_html():
     return send_from_directory(BASE_DIR, "index.html")
 
 
-@app.route("/admin_login.html")
-def admin_login():
-    return send_from_directory(BASE_DIR, "admin_login.html")
-
-
 @app.route("/api/<path:endpoint>", methods=["GET", "POST", "OPTIONS"])
 def api_proxy(endpoint):
-    # stream エンドポイントは特殊処理
     if endpoint == "stream":
         range_header = request.headers.get("Range")
         headers = {
@@ -136,13 +131,6 @@ def api_proxy(endpoint):
         }
         if range_header:
             headers["Range"] = range_header
-        # 認証ヘッダーも転送
-        auth = request.headers.get("X-StreamBox-Auth")
-        if auth:
-            headers["X-StreamBox-Auth"] = auth
-        user = request.headers.get("X-StreamBox-User")
-        if user:
-            headers["X-StreamBox-User"] = user
         return proxy_stream("/api/stream?" + request.query_string.decode("utf-8") if request.query_string else "/api/stream", headers)
 
     path = f"/api/{endpoint}"
@@ -151,26 +139,18 @@ def api_proxy(endpoint):
 
     headers = {}
 
-    # Content-Type
     ct = request.headers.get("Content-Type")
     if ct:
         headers["Content-Type"] = ct
 
-    # ⭐ 最重要: 認証ヘッダーを上流に転送
     auth = request.headers.get("X-StreamBox-Auth")
     if auth:
         headers["X-StreamBox-Auth"] = auth
 
-    user = request.headers.get("X-StreamBox-User")
-    if user:
-        headers["X-StreamBox-User"] = user
-
-    # Range (ストリーミング用)
     range_header = request.headers.get("Range")
     if range_header:
         headers["Range"] = range_header
 
-    # User-Agent
     user_agent = request.headers.get("User-Agent")
     if user_agent:
         headers["User-Agent"] = user_agent
