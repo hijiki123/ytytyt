@@ -1,4 +1,3 @@
-# app.py
 import os
 import urllib.error
 import urllib.request
@@ -15,7 +14,7 @@ UPSTREAM = os.environ.get("UPSTREAM_BASE", "http://11.jpn.gg:10225").rstrip("/")
 def add_cors(response):
     response.headers["Access-Control-Allow-Origin"] = "*"
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Range, X-StreamBox-Auth"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Range, X-StreamBox-Auth, X-StreamBox-User"
     return response
 
 
@@ -146,6 +145,11 @@ def api_proxy(endpoint):
     auth = request.headers.get("X-StreamBox-Auth")
     if auth:
         headers["X-StreamBox-Auth"] = auth
+
+    # ⭐ 追加: X-StreamBox-User を転送
+    user = request.headers.get("X-StreamBox-User")
+    if user:
+        headers["X-StreamBox-User"] = user
 
     range_header = request.headers.get("Range")
     if range_header:
