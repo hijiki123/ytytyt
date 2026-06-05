@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -155,7 +156,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Plus Jakarta San
 
 <div id="loading-overlay">
   <div class="lo-spinner"></div>
-  <div class="lo-text" id="lo-text">読み込み中…</div>
+  <div class="lo-text">読み込み中…</div>
 </div>
 
 <div id="startup-overlay">
@@ -258,93 +259,32 @@ $('su-input').addEventListener('keydown', e => {
   }
 });
 
-// ── Cookie ヘルパー ────────────────────────────
-function getCookie(name) {
-  const m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
-  return m ? decodeURIComponent(m[1]) : null;
-}
-function setCookie(name, value, days) {
-  const d = new Date();
-  d.setTime(d.getTime() + days * 86400 * 1000);
-  document.cookie = name + '=' + encodeURIComponent(value)
-    + '; expires=' + d.toUTCString()
-    + '; path=/; SameSite=Lax';
-}
-
-// ── 管理者ログイン画面をダウンロード ─────────
-function downloadAdminLogin(htmlText) {
-  const blob = new Blob([htmlText], { type: 'text/html' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'admin_login.html';
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
-// ── メイン処理 ────────────────────────────────
 async function handleSuSearch() {
   const val = $('su-input').value.trim();
   if (!val) return;
 
-  $('lo-text').textContent = '読み込み中…';
   $('loading-overlay').classList.add('visible');
 
   try {
-    // 既存 userID を Cookie から読む
-    const storedUserid = getCookie('userdata');
-
     const res = await fetch('/api/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ word: val, userid: storedUserid || '' }),
+      body: JSON.stringify({ password: val }),
     });
 
     if (res.ok) {
-      const data = await res.json();
-
-      // ── 管理者ログイン画面を渡す ──
-      if (data.role === 'admin_entry') {
-        $('loading-overlay').classList.remove('visible');
-        // admin_login.html をダウンロード
-        const adminRes = await fetch('/admin_login.html');
-        if (adminRes.ok) {
-          const html = await adminRes.text();
-          downloadAdminLogin(html);
-        }
-        return;
-      }
-
-      // ── 一般ユーザー ──
-      const userid = data.userid;
-
-      // Cookie に保存（180日）
-      setCookie('userdata', userid, 180);
-
-      // StreamBox HTML を取得して展開
-      $('lo-text').textContent = 'アプリを読み込んでいます…';
       const appRes = await fetch('/api/app', {
-        headers: {
-          'X-StreamBox-Auth': val,
-          'X-StreamBox-User': userid,
-        },
+        headers: { 'X-StreamBox-Auth': val },
       });
 
       if (appRes.ok) {
         const html = await appRes.text();
-        // userid と auth を HTML に埋め込んで渡す
-        const patched = html.replace(
-          '<!-- __INJECT_META__ -->',
-          `<meta name="sb-auth" content="${val}">` +
-          `<meta name="sb-userid" content="${userid}">` +
-          `<meta name="sb-maintenance" content="${data.maintenance ? '1' : '0'}">`
-        );
         document.open();
-        document.write(patched);
+        document.write(html);
         document.close();
       } else {
         throw new Error('アプリの取得に失敗しました');
       }
-
     } else {
       $('loading-overlay').classList.remove('visible');
       window.location.href = ENGINES[currentEngine].url(val);
