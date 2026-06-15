@@ -1,96 +1,58 @@
-import os
-from flask import Flask, request, Response, jsonify, send_from_directory, stream_with_context
-import requests
+import urllib.request
+import urllib.parse
+from flask import Flask, request, Response
 
 app = Flask(__name__)
 
-PORT = int(os.environ.get("SERVER_PORT", 10225))
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-UPSTREAM = os.environ.get("UPSTREAM_BASE", "http://11.jpn.gg:10225").rstrip("/")
+UPSTREAM_URL = "http://11.jpn.gg:10225"
 
-def add_cors(response):
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Range, X-StreamBox-Auth"
-    return response
-
-@app.after_request
-def after_request(response):
-    return add_cors(response)
-
-@app.before_request
-def handle_options():
-    if request.method == "OPTIONS":
-        return add_cors(Response(""))
-
-@app.route("/")
-@app.route("/index.html")
-def index():
-    return send_from_directory(BASE_DIR, "index.html")
-
-@app.route("/api/<path:endpoint>", methods=["GET", "POST"])
-def api_proxy(endpoint):
-    # 上流サーバーへのURLを構築
-    url = f"{UPSTREAM}/api/{endpoint}"
+def proxy_buffered(path, method="GET", extra_headers=None, body=None):
+    url = f"{UPSTREAM_URL}{path}"
     
-    # フロントエンドからのヘッダーをコピー（Hostヘッダーなどは上流とコンフリクトするので除外）
-    headers = {k: v for k, v in request.headers if k.lower() not in ["host", "content-length"]}
+    # ── ヘッダーの完全な引き継ぎ ──
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    }
     
-    # YouTubeストリーミング用のUser-Agent/Referer固定（元のロジックを踏襲）
-    if endpoint == "stream":
-        headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        headers["Referer"] = "https://www.youtube.com/"
+    if extra_headers:
+        for k, v in extra_headers.items():
+            headers[k] = v
 
+    req = urllib.request.Request(url, data=body, method=method, headers=headers)
+    
     try:
-        if endpoint == "stream":
-            # ストリーミングエンドポイントの場合（チャンク転送）
-            upstream_resp = requests.request(
-                method=request.method,
-                url=url,
-                params=request.args,
-                headers=headers,
-                stream=True,
-                timeout=60
-            )
-            
-            def generate():
-                for chunk in upstream_resp.iter_content(chunk_size=65536):
-                    if chunk:
-                        yield chunk
+        with urllib.request.urlopen(req, timeout=15) as res:
+            resp_headers = dict(res.headers)
+            return Response(res.read(), status=res.status, headers=resp_headers)
+    except urllib.error.HTTPError as e:
+        return Response(e.read(), status=e.code, headers=dict(e.headers))
+    except Exception as e:
+        return Response(str(e), status=502)
 
-            response_headers = dict(upstream_resp.headers)
-            response_headers["Cache-Control"] = "no-cache"
-            
-            return Response(
-                stream_with_context(generate()),
-                status=upstream_resp.status_code,
-                content_type=upstream_resp.headers.get("Content-Type", "video/mp4"),
-                headers={k: v for k, v in response_headers.items() if k.lower() not in ["transfer-encoding", "connection"]}
-            )
-        else:
-            # 通常のAPIリクエスト（auth, app, search, infoなど）
-            upstream_resp = requests.request(
-                method=request.method,
-                url=url,
-                params=request.args,
-                headers=headers,
-                data=request.get_data(),
-                timeout=30
-            )
-            
-            return Response(
-                upstream_resp.content,
-                status=upstream_resp.status_code,
-                content_type=upstream_resp.headers.get("Content-Type", "application/json")
-            )
+@app.route("/api/<path:endpoint>", methods=["GET", "POST", "OPTIONS"])
+def api_proxy(endpoint):
+    # CORSのOPTIONSリクエストは即座に通す
+    if request.method == "OPTIONS":
+        return Response(""), 200
 
-    except requests.exceptions.RequestException as e:
-        return jsonify({"error": f"Upstream proxy error: {str(e)}"}), 502
+    path = f"/api/{endpoint}"
+    if request.query_string:
+        path += "?" + request.query_string.decode("utf-8")
 
-@app.route("/health")
-def health():
-    return jsonify({"status": "ok"}), 200
+    # フロントエンドから届いた重要なヘッダーを抽出
+    headers = {}
+    for k, v in request.headers.items():
+        # 大文字小文字を区別せず、認証とJSON通信に必要なヘッダーを100%拾う
+        if k.lower() in ["content-type", "x-streambox-auth", "range"]:
+            headers[k] = v
 
-if __name__ == "__main__":
-    print(f"StreamBox proxy 起動中 → http://0.0.0.0:{PORT}")
-    app.run(host="0.0.0.0", port=PORT, threaded=True)
+    body = None
+    if request.method == "POST":
+        body = request.get_data()
+        if body:
+            # 上流のFlaskがバグらないよう、ボディの長さを正確に伝える
+            headers["Content-Length"] = str(len(body))
+
+    return proxy_buffered(path, method=request.method, extra_headers=headers, body=body)
+
+# フロントエンドの静的ファイルなどのルーティングが下部にあればそのまま残してください
