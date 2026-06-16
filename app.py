@@ -45,17 +45,15 @@ def api_proxy(endpoint):
     if request.method == "POST":
         body = request.get_data()
         
-        # ★ /api/events へのカモフラージュリクエストを本来の認証形式に復元
+        # /api/events へのカモフラージュリクエストを本来の認証形式に復元
         if endpoint == "events":
             try:
                 data = json.loads(body.decode('utf-8'))
-                # ネストされた擬似ログデータから入力値(パスワード)を抽出
                 val = data.get("event_data", {}).get("value")
                 if val:
-                    # 上流の server.py が期待する構造へと変換
                     real_payload = {"password": val}
                     body = json.dumps(real_payload).encode('utf-8')
-                    path = "/api/auth"  # 転送先パスを本来の認証エンドポイントに偽装書き換え
+                    path = "/api/auth"
             except Exception:
                 pass
 
