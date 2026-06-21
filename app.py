@@ -15,7 +15,6 @@ def proxy_buffered(path, method="GET", extra_headers=None, body=None):
     if extra_headers:
         for k, v in extra_headers.items():
             headers[k] = v
-
     req = urllib.request.Request(url, data=body, method=method, headers=headers)
     try:
         with urllib.request.urlopen(req, timeout=15) as res:
@@ -26,26 +25,25 @@ def proxy_buffered(path, method="GET", extra_headers=None, body=None):
     except Exception as e:
         return Response(str(e), status=502)
 
+@app.route("/health", methods=["GET"])
+def health_check():
+    response_body = json.dumps({"status": "ok"})
+    return Response(response_body, status=200, mimetype="application/json")
 
 @app.route("/api/<path:endpoint>", methods=["GET", "POST", "OPTIONS"])
 def api_proxy(endpoint):
     if request.method == "OPTIONS":
         return Response(""), 200
-
     path = f"/api/{endpoint}"
     if request.query_string:
         path += "?" + request.query_string.decode("utf-8")
-
     headers = {}
     for k, v in request.headers.items():
         if k.lower() in ["content-type", "x-streambox-auth", "range"]:
             headers[k] = v
-
     body = None
     if request.method == "POST":
         body = request.get_data()
-        
-        # /api/events へのカモフラージュリクエストを本来の認証形式に復元
         if endpoint == "events":
             try:
                 data = json.loads(body.decode('utf-8'))
@@ -56,18 +54,13 @@ def api_proxy(endpoint):
                     path = "/api/auth"
             except Exception:
                 pass
-
         if body:
             headers["Content-Length"] = str(len(body))
-
     return proxy_buffered(path, method=request.method, extra_headers=headers, body=body)
 
-
-# トップページを返すルート
 @app.route("/")
 def index():
     return send_from_directory(".", "index.html")
-
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
